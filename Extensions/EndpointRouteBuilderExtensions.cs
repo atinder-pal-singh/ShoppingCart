@@ -1,4 +1,5 @@
-﻿using ShoppingCart.EndPointsHandler;
+﻿using ShoppingCart.EndPointFilters;
+using ShoppingCart.EndPointsHandler;
 
 namespace ShoppingCart.Extensions
 {
@@ -8,16 +9,20 @@ namespace ShoppingCart.Extensions
         {
             var productEndPoints = app.MapGroup("/products");
             var productWithProductIdEndPoints = productEndPoints.MapGroup("/{productId:int}");
-            
+            var productWithProductIdEndPointsWithFilters = productWithProductIdEndPoints.MapGroup("")
+                .AddEndpointFilter(new ProductLockedFilter(1))
+                .AddEndpointFilter(new ProductLockedFilter(2));
+
             productEndPoints.MapGet("", ProductHandler.GetProductAsync);
 
             productWithProductIdEndPoints.MapGet("", ProductHandler.GetProductDetailAsync).WithName("GetProduct");
 
             productEndPoints.MapPost("", ProductHandler.AddProductAsync);
 
-            productWithProductIdEndPoints.MapPut("", ProductHandler.UpdateProductAsync);
+            productWithProductIdEndPointsWithFilters.MapPut("", ProductHandler.UpdateProductAsync);
 
-            productWithProductIdEndPoints.MapDelete("", ProductHandler.DeleteProductAsync);
+            productWithProductIdEndPointsWithFilters.MapDelete("", ProductHandler.DeleteProductAsync)
+                .AddEndpointFilter<LogNotFoundResponseFilter>();
 
         }
 
